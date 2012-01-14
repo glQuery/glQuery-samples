@@ -26,7 +26,7 @@ var glQuery = (function() {
   // Counters for identifiers
   shaderProgramCounter = 0,
   // Logging / information methods
-  logDebug = function(msg) { console.log(msg); },
+  logDebug = function(msg) { /*console.log(msg);*/ },
   logInfo = function(msg) { console.log(msg); },
   logWarning = function(msg) { console.warn(msg); },
   logError = function(msg) { console.error(msg); },
@@ -587,6 +587,10 @@ var glQuery = (function() {
   gl.BROWSER_DEFAULT_WEBGL          = 0x9244;
 
 
+  gl.update = function() {
+    return commands.length > 0;
+  };
+
   // Utility functions for working with tags
   // Test whether t0 contains any of the tags in ts1
   var containsAnyTags = function(t0, ts1) {
@@ -781,6 +785,7 @@ var glQuery = (function() {
         shaderProgram._glquery_id = shaderProgramCounter;
         ++shaderProgramCounter;
         // Cache all associated shader locations (attributes and uniforms)
+        //context.useProgram(shaderProgram);
         if (shaderLocations[shaderProgram._glquery_id] == null) {
           var activeAttributes = context.getProgramParameter(shaderProgram, context.ACTIVE_ATTRIBUTES),
           activeUniforms = context.getProgramParameter(shaderProgram, context.ACTIVE_UNIFORMS),
@@ -919,11 +924,12 @@ var glQuery = (function() {
       // Store the command
       for (var i = 0; i < selector.length; ++i) {
         var commandsStruct = (typeof tagCommands[selector[i]] === 'undefined'? (tagCommands[selector[i]] = {}) : tagCommands[selector[i]]),
-        uniformTable = commandsStruct[command.uniform];
+        uniformTable = commandsStruct[command.uniform],
+        uniformArgs = args.slice(1);
         if(uniformTable == null)
           uniformTable = commandsStruct[command.uniform] = {};
-        //commandsStruct[command.uniform] = args;
-        uniformTable[args[0]] = args.slice(1);
+        // (Vectors are automatically packed into arrays when necessary)
+        uniformTable[args[0]] = uniformArgs.length == 1 || (uniformArgs.length > 0 && Array.isArray(uniformArgs[0]))? uniformArgs : [uniformArgs];
       }
     },
     // insert: 9
@@ -999,17 +1005,17 @@ var glQuery = (function() {
     (function() {
       var uniformEval = {};
       uniformEval[gl.FLOAT] = WebGLRenderingContext.prototype.uniform1f;
-      uniformEval[gl.FLOAT_VEC2] = WebGLRenderingContext.prototype.uniform2f;
-      uniformEval[gl.FLOAT_VEC3] = WebGLRenderingContext.prototype.uniform3f;
-      uniformEval[gl.FLOAT_VEC4] = WebGLRenderingContext.prototype.uniform4f;
+      uniformEval[gl.FLOAT_VEC2] = WebGLRenderingContext.prototype.uniform2fv;
+      uniformEval[gl.FLOAT_VEC3] = WebGLRenderingContext.prototype.uniform3fv;
+      uniformEval[gl.FLOAT_VEC4] = WebGLRenderingContext.prototype.uniform4fv;
       uniformEval[gl.INT] = WebGLRenderingContext.prototype.uniform1i;
-      uniformEval[gl.INT_VEC2] = WebGLRenderingContext.prototype.uniform2i;
-      uniformEval[gl.INT_VEC3] = WebGLRenderingContext.prototype.uniform3i;
-      uniformEval[gl.INT_VEC4] = WebGLRenderingContext.prototype.uniform4i;
+      uniformEval[gl.INT_VEC2] = WebGLRenderingContext.prototype.uniform2iv;
+      uniformEval[gl.INT_VEC3] = WebGLRenderingContext.prototype.uniform3iv;
+      uniformEval[gl.INT_VEC4] = WebGLRenderingContext.prototype.uniform4iv;
       uniformEval[gl.BOOL] = WebGLRenderingContext.prototype.uniform1i;
-      uniformEval[gl.BOOL_VEC2] = WebGLRenderingContext.prototype.uniform2i;
-      uniformEval[gl.BOOL_VEC3] = WebGLRenderingContext.prototype.uniform3i;
-      uniformEval[gl.BOOL_VEC4] = WebGLRenderingContext.prototype.uniform4i;
+      uniformEval[gl.BOOL_VEC2] = WebGLRenderingContext.prototype.uniform2iv;
+      uniformEval[gl.BOOL_VEC3] = WebGLRenderingContext.prototype.uniform3iv;
+      uniformEval[gl.BOOL_VEC4] = WebGLRenderingContext.prototype.uniform4iv;
       uniformEval[gl.FLOAT_MAT2] = function(location, value, transpose) { this.uniformMatrix2fv(location, transpose != null? transpose : false, value); };
       uniformEval[gl.FLOAT_MAT3] = function(location, value, transpose) { this.uniformMatrix3fv(location, transpose != null? transpose : false, value); };
       uniformEval[gl.FLOAT_MAT4] = function(location, value, transpose) { this.uniformMatrix4fv(location, transpose != null? transpose : false, value); };
@@ -1032,11 +1038,13 @@ var glQuery = (function() {
               uniformLocation = args[0];
               // TODO: uniformInfo = locations.uniforms[args[0]];
             }*/
-            var uniformInfo = locations.uniforms[uniformName],
-            uniformLocation = uniformInfo.location,
-            uniformArgs = args[uniformName];
-            if (uniformLocation != null && uniformInfo != null)
-              uniformEval[uniformInfo.type].apply(context, [uniformLocation].concat(uniformArgs));
+            var uniformInfo = locations.uniforms[uniformName];
+            if (uniformInfo != null) {
+              var uniformLocation = uniformInfo.location,
+              uniformArgs = args[uniformName];
+              if (uniformLocation != null)
+                uniformEval[uniformInfo.type].apply(context, [uniformLocation].concat(uniformArgs));
+            }
           }
         }
       };
@@ -1054,8 +1062,14 @@ var glQuery = (function() {
       key = c[0],
       selector = c[1],
       commandArgs = c[2];
+      // TODO: Test performance against `dirtyTags = dirtyTags.concat(selector);`
+      //       This way likely results in better garbage collector behaviour
+      //       But also, what about `dirtyTags += selector;`?
+      for (var j = 0; j < selector.length; ++j)
+        dirtyTags.push(selector[j]);
       commandDispatch[key](context, selector, commandArgs);
     }
+    commands.length = 0;
   },
   // Collect and execute webgl commands using a render state structure to keep track of state changes
   evalCommands = function(context, renderState, commandsStack) {
