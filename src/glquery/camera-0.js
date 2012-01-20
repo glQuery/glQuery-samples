@@ -67,14 +67,14 @@ register('camera-0','glquery', 'glQuery Camera',
     .shaderProgram(shaderProgram)
     .vertexAttrib('position', vbo, 9*8, gl.FLOAT, 3, false, 0, 0)
     .vertexElem(ibo, 6*6, gl.UNSIGNED_SHORT, 0)
-    .uniform('view', gl.setMatrix4LookAt([10.0,10.0,10.0], [0.0,0.0,0.0], [0.0,1.0,0.0]))
-    //.uniform('view', gl.setMatrix4Identity())
-    .uniform('projection', gl.setMatrix4Ortho(-1.0, 1.0, -1.0, 1.0, 0.1, 100.0))
-    //.uniform('projection', gl.setMatrix4Identity())
+    .uniform('view', gl.matrix4.newLookAt([10.0,10.0,10.0], [0.0,0.0,0.0], [0.0,1.0,0.0]))
+    //.uniform('view', gl.matrix4.newIdentity())
+    .uniform('projection', gl.matrix4.newOrtho(-1.0, 1.0, -1.0, 1.0, 0.1, 100.0))
+    //.uniform('projection', gl.matrix4.newIdentity())
     .triangles()
     .render(context);
 
-    console.log(gl.setMatrix4LookAt([10.0,10.0,10.0], [0.0,0.0,0.0], [0.0,1.0,0.0]));
-    console.log(gl.setMatrix4Ortho(-1.0, 1.0, -1.0, 1.0, 0.1, 100.0));
+    console.log(gl.matrix4.newLookAt([10.0,10.0,10.0], [0.0,0.0,0.0], [0.0,1.0,0.0]));
+    console.log(gl.matrix4.newOrtho(-1.0, 1.0, -1.0, 1.0, 0.1, 100.0));
   }
 );
