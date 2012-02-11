@@ -1,3 +1,26 @@
+THIRD PARTY LIBRARIES
+---------------------
+
+glQuery-samples uses some third party libraries that are NOT in the public
+domain. You may find the relevant open source licenses for each of these in the
+licenses/ folder.
+
+This includes:
+
+* SceneJS
+  * MIT License: licenses/LICENSE-scenejs-mit
+  * GPL2 License: licenses/LICENSE-scenejs-gpl2
+
+* three.js
+  * MIT License: licenses/LICENSE-threejs-mit
+
+THIRD PARTY SAMPLES
+-------------------
+
+glQuery-samples include the following third party samples and assets that are
+NOT in the public domain. You may find the appropriate licenses for each of
+these in their respective paths.
+
 GLQUERY-SAMPLES IS PUBLIC DOMAIN SOFTWARE
 -----------------------------------------
 
@@ -34,22 +57,6 @@ Other Information:
     all uses of the work, to the fullest extent permitted by applicable law.
   * When using or citing the work, you should not imply endorsement by the
     author or the affirmer.
-
-THIRD PARTY LIBRARIES
----------------------
-
-Please note that glQuery-samples uses some third party libraries that are NOT in
-the public domain. You may find the relevant open source licenses for each of
-these in the licenses/ folder.
-
-This includes:
-
-* SceneJS
-  * MIT License: licenses/LICENSE-scenejs-mit
-  * GPL2 License: licenses/LICENSE-scenejs-gpl2
-
-* three.js
-  * MIT License: licenses/LICENSE-threejs-mit
 
 MAKING MODIFICATIONS
 --------------------
